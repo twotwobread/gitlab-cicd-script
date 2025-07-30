@@ -1,9 +1,7 @@
-#!/bin/bash
-
-set -e
+#!/bin/sh
 
 if [ "$#" -ne 4 ]; then
-    echo "Usage: $0 <config-json> <registry> <image-path> <tag>"
+    echo "Usage: $0 <config-json> <registry> <manifest-url>"
     exit 1
 fi
 
@@ -15,7 +13,15 @@ TAG="$4"
 
 echo "Processing Docker config from variable..."
 
-AUTH_ENCODED=$(echo "$CONFIG_JSON" | jq -r ".auths[\"$REGISTRY\"].auth" 2>/dev/null)
+REGISTRY_BLOCK=$(echo "$CONFIG_JSON" | grep -A 5 "\"$REGISTRY\"")
+if [ ! -z "$REGISTRY_BLOCK" ]; then
+    AUTH_ENCODED=$(echo "$REGISTRY_BLOCK" | grep '"auth"' | sed 's/.*"auth"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+    echo "Auth extracted."
+else
+    echo "Registry block not found. Check registry url and config json data"
+fi
+
+
 
 if [ "$AUTH_ENCODED" = "null" ] || [ -z "$AUTH_ENCODED" ]; then
     echo "No auth found for $REGISTRY"
