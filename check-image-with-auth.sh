@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+
+set -e
 
 if [ "$#" -ne 4 ]; then
     echo "Usage: $0 <config-json> <registry> <manifest-url>"
