@@ -30,6 +30,11 @@ MANIFEST_URL="https://$REGISTRY/v2/$IMAGE_PATH/manifests/$TAG"
 
 echo "Generated Manifest URL: $MANIFEST_URL"
 
+wget --server-response --spider \
+    --header="Authorization: Bearer $AUTH_ENCODED" \
+    --header="Accept: application/vnd.oci.image.manifest.v1+json" \
+    "$MANIFEST_URL" 
+
 HTTP_CODE=$(wget --server-response --spider \
     --header="Authorization: Bearer $AUTH_ENCODED" \
     --header="Accept: application/vnd.oci.image.manifest.v1+json" \
