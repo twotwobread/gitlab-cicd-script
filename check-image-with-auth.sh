@@ -32,6 +32,12 @@ MANIFEST_URL="https://$REGISTRY/v2/$IMAGE_PATH/manifests/$TAG"
 echo "Generated Manifest URL: $MANIFEST_URL"
 
 
+curl -s -o /dev/null -w "%{http_code}" \
+    --user "$AUTH_DECODED" \
+    --header "Accept: application/vnd.oci.image.manifest.v1+json" \
+    "$MANIFEST_URL"
+
+
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
     --user "$AUTH_DECODED" \
     --header "Accept: application/vnd.oci.image.manifest.v1+json" \
