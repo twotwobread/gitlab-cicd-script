@@ -36,6 +36,7 @@ wget --server-response --spider \
     "$MANIFEST_URL" 
 
 HTTP_CODE=$(wget --server-response --spider \
+    --no-check-certificate \
     --header="Authorization: Bearer $AUTH_ENCODED" \
     --header="Accept: application/vnd.oci.image.manifest.v1+json" \
     "$MANIFEST_URL" 2>&1 | grep -E "HTTP/[0-9]\.[0-9] [0-9]{3}" | sed -E 's/.*HTTP\/[0-9]\.[0-9] ([0-9]{3}).*/\1/')
