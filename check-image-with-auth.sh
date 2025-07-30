@@ -3,7 +3,7 @@
 set -e
 
 if [ "$#" -ne 4 ]; then
-    echo "Usage: $0 <config-json> <registry> <manifest-url>"
+    echo "Usage: $0 <config-json> <registry> <image-path> <tag>"
     exit 1
 fi
 
