@@ -17,34 +17,23 @@ echo "Processing Docker config from variable..."
 
 REGISTRY_BLOCK=$(echo "$CONFIG_JSON" | grep -A 5 "\"$REGISTRY\"")
 if [ ! -z "$REGISTRY_BLOCK" ]; then
-    AUTH_ENCODED=$(echo "$REGISTRY_BLOCK" | grep '"auth"' | sed 's/.*"auth"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+    AUTH_ENCODED=$(echo "$REGISTRY_BLOCK" | grep -m1 '"auth"' | sed 's/.*"auth"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
     echo "Auth extracted."
 else
     echo "Registry block not found. Check registry url and config json data"
 fi
 
-
-
-if [ "$AUTH_ENCODED" = "null" ] || [ -z "$AUTH_ENCODED" ]; then
-    echo "No auth found for $REGISTRY"
-    echo "Available registries:"
-    echo "$CONFIG_JSON" | jq -r '.auths | keys[]' 2>/dev/null
-    exit 1
-fi
-
 echo "Found auth for $REGISTRY"
 
 
-AUTH_DECODED=$(echo "$AUTH_ENCODED" | base64 -d)
 MANIFEST_URL="https://$REGISTRY/v2/$IMAGE_PATH/manifests/$TAG"
 
 echo "Generated Manifest URL: $MANIFEST_URL"
 
-
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-    --user "$AUTH_DECODED" \
-    --header "Accept: application/vnd.oci.image.manifest.v1+json" \
-    "$MANIFEST_URL")
+HTTP_CODE=$(wget --server-response --spider \
+    --header="Authorization: Bearer $AUTH_ENCODED" \
+    --header="Accept: application/vnd.oci.image.manifest.v1+json" \
+    "$MANIFEST_URL" 2>&1 | grep -E "HTTP/[0-9]\.[0-9] [0-9]{3}" | sed -E 's/.*HTTP\/[0-9]\.[0-9] ([0-9]{3}).*/\1/')
 
 echo "HTTP_CODE: $HTTP_CODE"
 echo "$HTTP_CODE" > http_code.txt
