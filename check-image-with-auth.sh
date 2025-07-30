@@ -1,9 +1,7 @@
-#!/bin/sh
-
-set -e
+#!/bin/bash
 
 if [ "$#" -ne 4 ]; then
-    echo "Usage: $0 <config-json> <registry> <image-path> <tag>"
+    echo "Usage: $0 <config-json> <registry> <manifest-url>"
     exit 1
 fi
 
@@ -26,21 +24,16 @@ fi
 echo "Found auth for $REGISTRY"
 
 
+AUTH_DECODED=$(echo "$AUTH_ENCODED" | base64 -d)
 MANIFEST_URL="https://$REGISTRY/v2/$IMAGE_PATH/manifests/$TAG"
 
 echo "Generated Manifest URL: $MANIFEST_URL"
 
-wget --server-response --spider \
-    --no-check-certificate \
-    --header="Authorization: Bearer $AUTH_ENCODED" \
-    --header="Accept: application/vnd.oci.image.manifest.v1+json" \
-    "$MANIFEST_URL" 
 
-HTTP_CODE=$(wget --server-response --spider \
-    --no-check-certificate \
-    --header="Authorization: Bearer $AUTH_ENCODED" \
-    --header="Accept: application/vnd.oci.image.manifest.v1+json" \
-    "$MANIFEST_URL" 2>&1 | grep -E "HTTP/[0-9]\.[0-9] [0-9]{3}" | sed -E 's/.*HTTP\/[0-9]\.[0-9] ([0-9]{3}).*/\1/')
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+    --user "$AUTH_DECODED" \
+    --header "Accept: application/vnd.oci.image.manifest.v1+json" \
+    "$MANIFEST_URL")
 
 echo "HTTP_CODE: $HTTP_CODE"
 echo "$HTTP_CODE" > http_code.txt
